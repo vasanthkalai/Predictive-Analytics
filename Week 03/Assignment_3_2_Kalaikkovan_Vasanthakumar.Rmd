@@ -1,0 +1,111 @@
+---
+title: "Assignment_3_2_Marketing_Promotions"
+author: "Vasanthakumar Kalaikkovan"
+date: "15/09/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Importing, Ploting, and Saving Data
+
+```{r RDataLoad, echo=FALSE,include=FALSE}
+# Loading Libraries
+library(car) #linear regression
+library(lattice) # graphics 
+library(ggplot2) # graphics 
+
+#set directory
+setwd("C:/Users/vasan/Predictive-Analytics/Week 03")
+
+df<-read.csv("dodgers.csv")
+```
+
+Head of the dataframe
+```{r RHead,echo=FALSE}
+head(df)
+```
+
+Summary of the dataframe
+```{r RSum,echo=FALSE}
+summary(df)
+```
+
+Class of the dataframe
+```{r RClass,echo=FALSE}
+class(df)
+```
+
+Dimension of the dataframe
+```{r RDim,echo=FALSE}
+dim(df)
+```
+
+Structure of the dataframe
+```{r RStr,echo=FALSE}
+str(df)
+```
+
+## Scatter and Box plots
+```{r Rplot, echo=FALSE}
+df$day_of_week<-factor(df$day_of_week,levels=c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"))
+df$month<-factor(df$month,levels=c("APR","MAY","JUN","AUG","SEP","OCT"))
+```
+
+```{r Rplot1, echo=FALSE}
+## Day of weekdays
+ggplot(df,aes(x=day_of_week,y=attend/1000))+geom_boxplot()+ggtitle("Weekdays Attendance")+
+                  xlab("Days of week")+ylab("Attendances in 1000s")
+```
+
+```{r Rplot2, echo=FALSE}
+## Day night attendance
+ggplot(df,aes(x=day_night,y=attend/1000))+geom_boxplot()+ggtitle("Day night Attendance")+
+  xlab("Day night")+ylab("Attendance in 1000s")
+```
+
+```{r Rplot3, echo=FALSE}
+## Month attendance 
+plot(df$month,df$attend/1000,main="Month Attendance",xlab="Month",ylab="Attendance in 1000s",las=1)
+```
+
+```{r Rplot4, echo=FALSE}
+## Attendance by Temperature
+ggplot(df,aes(x=month,y=attend/1000,color=fireworks))+geom_point()+facet_wrap(day_night~skies)+
+  ggtitle("Attendance By Month")+xlab("Month")+ylab("Attendance in 1000s")
+```
+
+
+## Regression Model
+
+```{r Regression, echo=FALSE}
+#create model
+my.model <- {attend ~ month + day_of_week + day_night}
+
+#Reseed
+set.seed(1234)
+training_test <- c(rep(1, trunc((2/3)*nrow(df))), rep(2, trunc((1/3)*nrow(df))))
+
+#Sample
+df$Training_Test <- sample(training_test)
+df$Training_Test <- factor(df$Training_Test, levels = c(1, 2), labels = c("TRAIN", "TEST"))
+df.Train <- subset(df, Training_Test == "TRAIN")
+df.Test <- subset(df, Training_Test == "TEST")
+
+#Fit model to training set
+train.model.fit <- lm(my.model, data = df.Train)
+
+#Evaluate the model
+df.Test$Predict_Attend <- predict(train.model.fit, newdata = df.Test)
+
+my.model.fit <- lm(my.model, data = df)  # use all available data
+print(summary(my.model.fit))
+
+```
+
+## Report
+
+The multiple linear regression model is developed to find the relationship between month, day of the week, Day Night and attendance. We have found the relationship with p-value of 0.0003532. As per the above analysis would be the best to run the promotion to reach more attendance (12713). 
+
